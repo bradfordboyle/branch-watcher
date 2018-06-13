@@ -10,7 +10,12 @@ lein uberjar
 
 ## Usage
 
+You will need to create a [Personal Access Token][0] and export it as an environment variable.
+
+[0]: https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
+
 ```sh
+export GITHUB_TOKEN=<
 java -jar target/uberjar/branch-watcher-0.1.0-SNAPSHOT-standalone.jar <org> <repo>
 ```
 
