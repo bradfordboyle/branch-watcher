@@ -4,8 +4,9 @@
   :license {:name "Apache License, Version 2.0"
             :url "https://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [environ "1.1.0"]
-                 [irresponsible/tentacles "0.6.2"]]
+                 [clj-http "3.9.0"]
+                 [cheshire "5.8.0"]
+                 [environ "1.1.0"]]
   :main ^:skip-aot branch-watcher.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
