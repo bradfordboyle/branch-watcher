@@ -9,7 +9,7 @@ query($owner: String!, $name: String!, $fetchSize: Int = 10, $cursor: String = "
             ... on Commit {
               committedDate
               author {
-                name                
+                name
               }
             }
           }
