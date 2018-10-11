@@ -11,9 +11,10 @@
 
 (defn sort-branch-info
   [branch-info]
-  (let [by-author (group-by :author branch-info)
-        by-count (sort-by #(count (second %)) > by-author)]
-    (reduce (fn [acc [k v]] (into acc (sort-by :date v))) [] by-count)))
+  (->> branch-info
+       (group-by :author)
+       (sort-by #(count (second %)) >)
+       (mapcat (fn [[name refs]] (sort-by :date refs)))))
 
 (def url "https://api.github.com/graphql")
 
@@ -56,8 +57,9 @@
      :date (-> node :target :committedDate)
      :author (-> node :target :author :name)}))
 
-(defn api-call
+(defn run-query
   [query variables]
+  ; look at using `letfn` here instead
   (let [req (make-request query variables)
         exec-request-one (fn exec-request-one [req]
                            (:body (http/request req)))
@@ -72,7 +74,9 @@
 (defn branches
   ([owner repo-name] (branches owner repo-name 10))
   ([owner repo-name fetch-size]
-   (map branch-info (api-call branch-query {:owner owner :name repo-name :fetchSize fetch-size}))))
+   (->> {:owner owner :name repo-name :fetchSize fetch-size}
+        (run-query branch-query)
+        (map branch-info))))
 
 (defn -main
   "Print a table of branches, sorted by author with highest number of outstanding branches and then date"
