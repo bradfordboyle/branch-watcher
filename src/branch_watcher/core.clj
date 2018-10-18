@@ -78,10 +78,16 @@
         (run-query branch-query)
         (map branch-info))))
 
+(defn display-branches
+  ([owner repo-name] (display-branches owner repo-name 100))
+  ([owner repo-name fetch-size]
+   (->> (branches owner repo-name 50)
+        (sort-by :date)
+        (print-table [:author :name :date]))))
+
 (defn -main
   "Print a table of branches, sorted by author with highest number of outstanding branches and then date"
   [& args]
   (let [org (first args)
-        repo (second args)
-        data ((comp sort-branch-info branches) org repo 50)]
-    (print-table [:author :name :date] data)))
+        repo (second args)]
+    (display-branches org repo)))
