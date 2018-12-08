@@ -40,6 +40,15 @@ $ java -jar target/uberjar/branch-watcher-0.1.0-SNAPSHOT-standalone.jar alpineli
 |     Natanael Copa |      master | 2018-06-12T20:41:00Z |
 ```
 
+## Concourse Pipeline
+
+```sh
+fly --target=<target> set-pipeline \
+    --config=pipeline.yml \
+    --pipeline=branch-watcher \
+    --var=github_token="${GITHUB_TOKEN}"
+```
+
 ## License
 
 Copyright © 2018 Bradford D. Boyle
