@@ -72,7 +72,7 @@
     (exec-request req)))
 
 (defn branches
-  ([owner repo-name] (branches owner repo-name 10))
+  ([owner repo-name] (branches owner repo-name 100))
   ([owner repo-name fetch-size]
    (->> {:owner owner :name repo-name :fetchSize fetch-size}
         (run-query branch-query)
