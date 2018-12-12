@@ -1,0 +1,13 @@
+query($login: String!, $fetchSize: Int = 10, $cursor: String = "") {
+  organization(login: $login) {
+    repositories(first: $fetchSize, after: $cursor) {
+      nodes {
+        name
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}

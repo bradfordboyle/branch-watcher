@@ -2,7 +2,8 @@
   (:gen-class)
   (:require [environ.core :refer [env]]
             [clj-http.client :as http]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure.string :as str])
 
   (:use [clojure.pprint :only (print-table)]))
 
@@ -20,6 +21,8 @@
 
 (def branch-query (slurp (io/resource "query.graphql")))
 
+(def repo-query (slurp (io/resource "repos.graphql")))
+
 (defn make-request
   [query variables]
   {:method :post
@@ -35,48 +38,71 @@
   (assoc-in req [:form-params :variables :cursor] cursor))
 
 (defn page-info
-  [resp]
-  (get-in resp [:data :repository :refs :pageInfo]))
+  "Given a clj-http response, extract the cursor information"
+  [resp path]
+  (-> resp
+      :data
+      (get-in path)
+      :pageInfo))
 
 (defn has-next?
-  "Given a clj-http resp, check if there are more results"
-  [resp]
+  [resp path]
   (-> resp
-      page-info
+      (page-info path)
       :hasNextPage))
 
 (defn extract-nodes
-  [resp]
-  (-> resp :data :repository :refs :edges))
+  [resp path]
+  (-> resp
+      :data
+      (get-in path)
+      :nodes))
 
 (defn branch-info
-  "Given a collection of branch ref edges, return the name, committed date, and author of the branch"
-  [edge]
-  (let [node (:node edge)]
-    {:name (-> node :name)
-     :date (-> node :target :committedDate)
-     :author (-> node :target :author :name)}))
+  "Given a collection of branch ref nodes, return the name, committed date, and author of the branch"
+  [node]
+  {:name (-> node :name)
+   :date (-> node :target :committedDate)
+   :author (-> node :target :author :name)})
 
 (defn run-query
-  [query variables]
+  [query path variables]
   ; look at using `letfn` here instead
   (let [req (make-request query variables)
         exec-request-one (fn exec-request-one [req]
                            (:body (http/request req)))
         exec-request (fn exec-request [req]
-                       (let [resp (exec-request-one req)]
-                         (if (has-next? resp)
-                           (let [new-req (update-request req (-> resp page-info :endCursor))]
-                             (lazy-cat (extract-nodes resp) (exec-request new-req)))
-                           (extract-nodes resp))))]
+                       (let [resp (exec-request-one req)
+                             nodes (extract-nodes resp path)]
+                         (do
+                           (if (has-next? resp path)
+                             (let [new-req (update-request req (:endCursor  (page-info resp path)))]
+                               (lazy-cat (extract-nodes resp path) (exec-request new-req)))
+                             (extract-nodes resp path)))))]
     (exec-request req)))
 
 (defn branches
   ([owner repo-name] (branches owner repo-name 100))
   ([owner repo-name fetch-size]
    (->> {:owner owner :name repo-name :fetchSize fetch-size}
-        (run-query branch-query)
+        (run-query branch-query [:repository :refs])
         (map branch-info))))
+
+(defn repos
+  ([login] (repos login 100))
+  ([login fetch-size]
+   (->> {:login login :fetchSize fetch-size}
+        (run-query repo-query [:organization :repositories]))))
+
+(defn repo-name-starts-with?
+  [repo]
+  (-> repo
+      :name
+      (str/starts-with? "gp")))
+
+(defn repo-topics
+  [repo]
+  (get-in repo [:respositoryTopic :nodes]))
 
 (defn display-branches
   ([owner repo-name] (display-branches owner repo-name 100))

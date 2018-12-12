@@ -2,15 +2,13 @@ query($owner: String!, $name: String!, $fetchSize: Int = 10, $cursor: String = "
   repository(owner: $owner, name: $name) {
     refs(first: $fetchSize, refPrefix: "refs/heads/", after: $cursor) {
       totalCount
-      edges {
-        node {
-          name
-          target {
-            ... on Commit {
-              committedDate
-              author {
-                name
-              }
+      nodes {
+        name
+        target {
+          ... on Commit {
+            committedDate
+            author {
+              name
             }
           }
         }
