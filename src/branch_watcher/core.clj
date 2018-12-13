@@ -102,7 +102,14 @@
 
 (defn repo-topics
   [repo]
-  (get-in repo [:respositoryTopic :nodes]))
+  (get-in repo [:repositoryTopics :nodes]))
+
+(defn has-topics?
+  [repo]
+  (-> repo
+      repo-topics
+      empty?
+      not))
 
 (defn display-branches
   ([owner repo-name] (display-branches owner repo-name 100))

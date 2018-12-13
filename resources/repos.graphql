@@ -3,6 +3,13 @@ query($login: String!, $fetchSize: Int = 10, $cursor: String = "") {
     repositories(first: $fetchSize, after: $cursor) {
       nodes {
         name
+        repositoryTopics(first:10) {
+          nodes {
+            topic {
+              name
+            }
+          }
+        }
       }
       pageInfo {
         endCursor
